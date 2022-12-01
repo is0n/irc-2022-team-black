@@ -9,6 +9,7 @@ public class Drivetrain extends SubsystemBase {
     public Drivetrain(int lport, int rport) {
         this.l = new VictorSP(lport);
         this.r = new VictorSP(rport);
+        this.l.setInverted(true);
     }
 
     public void drive(double ls, double rs) {

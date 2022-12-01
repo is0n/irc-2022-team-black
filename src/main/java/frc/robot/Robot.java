@@ -5,69 +5,60 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import frc.robot.subsystems.Drivetrain;
+import frc.robot.subsystems.Arm;
+import frc.robot.commands.AutoDrive;
+import frc.robot.commands.Drive;
+import frc.robot.commands.MoveArm;
 
-/**
- * The VM is configured to automatically run this class, and to call the functions corresponding to
- * each mode, as described in the TimedRobot documentation. If you change the name of this class or
- * the package after creating this project, you must also update the manifest file in the resource
- * directory.
- */
 public class Robot extends TimedRobot {
-  private final PWMSparkMax m_leftDrive = new PWMSparkMax(0);
-  private final PWMSparkMax m_rightDrive = new PWMSparkMax(1);
-  private final DifferentialDrive m_robotDrive = new DifferentialDrive(m_leftDrive, m_rightDrive);
-  private final Joystick m_stick = new Joystick(0);
-  private final Timer m_timer = new Timer();
+  private Joystick lj, rj;
+  private JoystickButton armLift, armLower;
 
-  /**
-   * This function is run when the robot is first started up and should be used for any
-   * initialization code.
-   */
+  private Drivetrain drivetrain = new Drivetrain(0, 1);
+  private Drive drive;
+  private Arm arm = new Arm(2);
+
+  private Command autoCommand = new SequentialCommandGroup(
+    new AutoDrive(drivetrain, 4, 4).withTimeout(2),
+    new AutoDrive(drivetrain, 0, 3).withTimeout(1)
+  );
+
   @Override
   public void robotInit() {
-    // We need to invert one side of the drivetrain so that positive voltages
-    // result in both sides moving forward. Depending on how your robot's
-    // gearbox is constructed, you might have to invert the left side instead.
-    m_rightDrive.setInverted(true);
+    this.lj = new Joystick(0);
+    this.rj = new Joystick(1);
+    armLift = new JoystickButton(this.lj, 1);
+    armLower = new JoystickButton(this.rj, 1);
+    this.drive = new Drive(this.drivetrain, this.lj, this.rj);
   }
 
-  /** This function is run once each time the robot enters autonomous mode. */
   @Override
-  public void autonomousInit() {
-    m_timer.reset();
-    m_timer.start();
+  public void teleopInit() {
+    this.autoCommand.end(false);
+    this.drive.schedule();
+    this.drive.initialize();
+    this.armLift.whenPressed(new MoveArm(arm, true));
+    this.armLower.whenPressed(new MoveArm(arm, false));
   }
 
-  /** This function is called periodically during autonomous. */
-  @Override
-  public void autonomousPeriodic() {
-    // Drive for 2 seconds
-    if (m_timer.get() < 2.0) {
-      m_robotDrive.arcadeDrive(0.5, 0.0); // drive forwards half speed
-    } else {
-      m_robotDrive.stopMotor(); // stop robot
-    }
-  }
-
-  /** This function is called once each time the robot enters teleoperated mode. */
-  @Override
-  public void teleopInit() {}
-
-  /** This function is called periodically during teleoperated mode. */
   @Override
   public void teleopPeriodic() {
-    m_robotDrive.arcadeDrive(m_stick.getY(), m_stick.getX());
+    this.drive.execute();
   }
 
-  /** This function is called once each time the robot enters test mode. */
   @Override
-  public void testInit() {}
+  public void autonomousInit() {
+    this.drive.end(true);
+    this.autoCommand.schedule();
+  }
 
-  /** This function is called periodically during test mode. */
   @Override
-  public void testPeriodic() {}
+  public void autonomousPeriodic() {
+    this.autoCommand.execute();
+  }
 }
