@@ -11,7 +11,8 @@ public class AutoDrive extends CommandBase {
         this.drivetrain = dt;
         this.ls = ls;
         this.rs = rs;
-        super.addRequirements(drivetrain);
+        
+        addRequirements(drivetrain);
     }
     
     @Override

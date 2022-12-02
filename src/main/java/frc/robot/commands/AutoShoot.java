@@ -1,18 +1,19 @@
 package frc.robot.commands;
 
 import frc.robot.subsystems.Arm;
-import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.CommandBase; 
 
-public class MoveArm extends CommandBase {
+public class AutoShoot extends CommandBase {
     private Arm arm;
-    private boolean isUp;
+    private double speed;
 
-    public MoveArm(Arm a, boolean isUp) {
-        arm = a;
-        this.isUp = isUp;
-        addRequirements(a);
+    public AutoShoot(Arm arm, double speed) {
+        this.arm = arm;
+        this.speed = speed;
+        
+        addRequirements(arm);
     }
-
+    
     @Override
     public void initialize() {
         arm.stop();
@@ -20,7 +21,7 @@ public class MoveArm extends CommandBase {
 
     @Override
     public void execute() {
-        arm.drive((isUp) ? 1:-1 );
+        arm.drive(speed);
     }
 
     @Override

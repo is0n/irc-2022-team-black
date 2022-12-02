@@ -12,6 +12,7 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import frc.robot.subsystems.Drivetrain;
 import frc.robot.subsystems.Arm;
 import frc.robot.commands.AutoDrive;
+import frc.robot.commands.BasicAuto;
 import frc.robot.commands.Drive;
 import frc.robot.commands.MoveArm;
 
@@ -23,10 +24,8 @@ public class Robot extends TimedRobot {
   private Drive drive;
   private Arm arm = new Arm(2);
 
-  private Command autoCommand = new SequentialCommandGroup(
-    new AutoDrive(drivetrain, 4, 4).withTimeout(2),
-    new AutoDrive(drivetrain, 0, 3).withTimeout(1)
-  );
+  private Command autoCommand = new BasicAuto(drivetrain, arm);
+  
 
   @Override
   public void robotInit() {
