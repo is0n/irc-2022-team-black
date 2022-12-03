@@ -5,59 +5,37 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import frc.robot.subsystems.Drivetrain;
-import frc.robot.subsystems.Arm;
-import frc.robot.commands.AutoDrive;
-import frc.robot.commands.BasicAuto;
-import frc.robot.commands.Drive;
-import frc.robot.commands.MoveArm;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.motorcontrol.MotorController;
+import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
 
+/**
+ * This is a demo program showing the use of the DifferentialDrive class, specifically it contains
+ * the code necessary to operate a robot with tank drive.
+ */
 public class Robot extends TimedRobot {
-  private Joystick lj, rj;
-  private JoystickButton armLift, armLower;
+  private DifferentialDrive m_myRobot;
+  private Joystick m_leftStick;
+  private Joystick m_rightStick;
 
-  private Drivetrain drivetrain = new Drivetrain(0, 1);
-  private Drive drive;
-  private Arm arm = new Arm(2);
-
-  private Command autoCommand = new BasicAuto(drivetrain, arm);
-  
+  private final MotorController m_leftMotor = new PWMSparkMax(0);
+  private final MotorController m_rightMotor = new PWMSparkMax(1);
 
   @Override
   public void robotInit() {
-    this.lj = new Joystick(0);
-    this.rj = new Joystick(1);
-    armLift = new JoystickButton(this.lj, 1);
-    armLower = new JoystickButton(this.rj, 1);
-    this.drive = new Drive(this.drivetrain, this.lj, this.rj);
-  }
+    // We need to invert one side of the drivetrain so that positive voltages
+    // result in both sides moving forward. Depending on how your robot's
+    // gearbox is constructed, you might have to invert the left side instead.
+    m_rightMotor.setInverted(true);
 
-  @Override
-  public void teleopInit() {
-    this.autoCommand.end(false);
-    this.drive.schedule();
-    this.drive.initialize();
-    this.armLift.whenPressed(new MoveArm(arm, true));
-    this.armLower.whenPressed(new MoveArm(arm, false));
+    m_myRobot = new DifferentialDrive(m_leftMotor, m_rightMotor);
+    m_leftStick = new Joystick(0);
+    m_rightStick = new Joystick(1);
   }
 
   @Override
   public void teleopPeriodic() {
-    this.drive.execute();
-  }
-
-  @Override
-  public void autonomousInit() {
-    this.drive.end(true);
-    this.autoCommand.schedule();
-  }
-
-  @Override
-  public void autonomousPeriodic() {
-    this.autoCommand.execute();
+    m_myRobot.tankDrive(m_leftStick.getY(), m_rightStick.getY());
   }
 }
